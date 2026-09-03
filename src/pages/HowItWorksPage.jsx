@@ -1,6 +1,6 @@
 import React from 'react';
-import { OrderProcessSection } from '../landing/OrderProcessSection';
-import { PageTransition } from '../layout/PageTransition';
+import { OrderProcessSection } from '../components/landing/OrderProcessSection';
+import { PageTransition } from '../components/layout/PageTransition';
 
 export const HowItWorksPage = () => {
   return (
