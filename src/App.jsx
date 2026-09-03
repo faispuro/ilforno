@@ -4,6 +4,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './components/pages/HomePage';
 import { HowItWorksPage } from './components/pages/HowItWorksPage';
+import './styles/pizzeria-animations.css';
 
 export function App() {
   return (
