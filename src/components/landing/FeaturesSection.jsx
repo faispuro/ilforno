@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Flame, Clock, UtensilsCrossed, PackageCheck } from 'lucide-react';
+import { ScrollSection } from '../common/ScrollSection';
+import { StaggerGroup } from '../common/StaggerGroup';
+
+const STYLE = `
+  @keyframes kenBurns {
+    0% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+  .ken-burns {
+    animation: kenBurns 6s ease-out forwards;
+  }
+`;
 
 export const FeaturesSection = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -49,9 +61,10 @@ export const FeaturesSection = () => {
 
   return (
     <section className="relative bg-stone-950 text-stone-100 py-20 px-4 sm:px-6 lg:px-8 border-t border-stone-800/80 overflow-hidden">
-      
+      <style>{STYLE}</style>
+
       {/* Fondo de pizarrón sutil unificado */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center opacity-10 grayscale mix-blend-luminosity pointer-events-none"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1600&auto=format&fit=crop')`,
@@ -59,18 +72,18 @@ export const FeaturesSection = () => {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-16">
-        
+
         {/* Encabezado Principal */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-xs font-black uppercase tracking-widest text-red-500 block">
             NUESTRO OFICIO
           </span>
-          
+
           <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-wider text-stone-100 font-serif leading-tight">
             ¿POR QUÉ LA PIZZA <br className="hidden sm:block" />
             <span className="text-red-500">SALE DISTINTA?</span>
           </h2>
-          
+
           <p className="text-stone-400 text-sm sm:text-base font-medium max-w-xl mx-auto pt-1">
             Sin secretos guardados: masa con descanso, pre-cocción justa y materia prima de calidad para hacer en casa.
           </p>
@@ -78,8 +91,14 @@ export const FeaturesSection = () => {
 
         {/* Layout de 2 Columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
-          <div className="lg:col-span-6 space-y-8 divide-y divide-stone-800/80">
+
+          {/* Lista de pasos: entra en cascada al hacer scroll, una sola vez */}
+          <StaggerGroup
+            className="lg:col-span-6 space-y-8 divide-y divide-stone-800/80"
+            direction="up"
+            baseDelay={0}
+            step={120}
+          >
             {steps.map((item, index) => {
               const isActive = activeStep === index;
               return (
@@ -92,18 +111,17 @@ export const FeaturesSection = () => {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
-                    
+
                     <div className="space-y-3 flex-1">
-                      {/* Ícono + Badge de Paso */}
                       <div className="flex items-center gap-4">
                         <div className={`p-3 rounded-full border transition-colors ${
-                          isActive 
-                            ? 'border-red-500 bg-red-950/30' 
+                          isActive
+                            ? 'border-red-500 bg-red-950/30'
                             : 'border-stone-700/80 bg-stone-900 group-hover:border-red-500'
                         }`}>
                           {item.icon}
                         </div>
-                        
+
                         <div>
                           <span className="text-[10px] font-black tracking-widest text-stone-500 uppercase block">
                             {item.tag}
@@ -131,7 +149,7 @@ export const FeaturesSection = () => {
                 </div>
               );
             })}
-          </div>
+          </StaggerGroup>
 
           <div className="lg:col-span-6 h-100 sm:h-125 relative rounded-3xl overflow-hidden border border-stone-800 shadow-2xl bg-stone-950">
             {steps.map((item, index) => (
@@ -144,9 +162,9 @@ export const FeaturesSection = () => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover ${activeStep === index ? 'ken-burns' : ''}`}
                 />
-                
+
                 <div className="absolute inset-0 bg-linear-to-t from-stone-950 via-stone-950/20 to-transparent" />
 
                 <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
