@@ -6,7 +6,7 @@ const WHATSAPP_NUMBER = '543410000000';
 const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
 
 export const Navbar = () => {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const navigate = useNavigate();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
@@ -36,15 +36,15 @@ export const Navbar = () => {
   useEffect(() => {
     if (pathname === '/como-pedir') {
       window.scrollTo(0, 0);
-    } else if (pathname === '/' && window.location.hash === '#menu') {
+    } else if (pathname === '/' && hash === '#menu') {
       const element = document.getElementById('menu');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
-    } else if (pathname === '/' && !window.location.hash) {
+    } else if (pathname === '/' && !hash) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [pathname]);
+  }, [pathname, hash]);
 
   const handleMenuClick = (e) => {
     e.preventDefault();
