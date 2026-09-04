@@ -106,25 +106,31 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
 
   const revalidateLive = (nextData) => {
     const allErrors = validate(nextData);
-    setErrors((prev) => {
-      const updated = { ...prev };
-      Object.keys(touched).forEach((key) => {
-        if (touched[key]) updated[key] = allErrors[key];
+    setErrors((prevErrors) => {
+      const updatedErrors = { ...prevErrors };
+
+      // Recorremos las claves para limpiar o actualizar solo los campos en uso/interactuados
+      Object.keys({ ...prevErrors, ...touched }).forEach((field) => {
+        if (allErrors[field]) {
+          updatedErrors[field] = allErrors[field];
+        } else {
+          delete updatedErrors[field];
+        }
       });
-      return updated;
+
+      return updatedErrors;
     });
-    return allErrors;
   };
 
   const updateField = (field, value) => {
     const next = { ...formData, [field]: value };
     setFormData(next);
-    if (touched[field]) revalidateLive(next);
+    revalidateLive(next);
   };
 
   const markTouched = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    setErrors((prev) => ({ ...prev, ...validate(formData) }));
+    revalidateLive(formData);
   };
 
   const handleImageChange = (file) => {
@@ -133,9 +139,7 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
     const next = { ...formData, previewImage: previewUrl, imageFile: file };
     setFormData(next);
     setTouched((prev) => ({ ...prev, image: true }));
-    if (touched.image || errors.image) {
-      setErrors((prev) => ({ ...prev, image: validate(next).image }));
-    }
+    revalidateLive(next);
   };
 
   const handleSubmit = (e) => {
@@ -193,10 +197,8 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
           shakeKey > 0 ? 'modal-shake' : ''
         }`}
       >
-        {/* Glow de fondo amber en el modal */}
         <div className="absolute top-0 right-0 w-48 h-24 bg-amber-600/10 blur-2xl pointer-events-none rounded-full" />
 
-        {/* Header */}
         <div className="shrink-0 flex items-center justify-between border-b border-stone-800/80 p-5 sm:p-6 bg-stone-900/80 relative z-10">
           <div className="space-y-1">
             <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest font-bold flex items-center gap-1.5 bg-amber-950/50 border border-amber-900/50 px-2.5 py-0.5 rounded-full w-fit">
@@ -216,7 +218,6 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
           </button>
         </div>
 
-        {/* Cuerpo del formulario */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 relative z-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -334,7 +335,6 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
           </div>
         </div>
 
-        {/* Footer */}
         <div className="shrink-0 border-t border-stone-800/80 p-5 sm:p-6 bg-stone-900/80 flex justify-end gap-3 relative z-10">
           <button
             type="button"
@@ -356,7 +356,7 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 text-stone-950" /> 
+                <Save className="w-4 h-4 text-stone-950" /> Guardar
               </>
             )}
           </button>
