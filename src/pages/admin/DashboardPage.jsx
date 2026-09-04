@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, Flame, BarChart3, Image as ImageIcon, BookOpen, Pizza, MessageSquare, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { LogOut, Flame, BarChart3, Image as ImageIcon, BookOpen, Pizza, MessageSquare, ShieldCheck } from 'lucide-react';
 
 import { MetricsTab } from '../../components/admin/MetricsTab';
 import { HeroEditorTab } from '../../components/admin/HeroEditorTab';
@@ -19,17 +19,12 @@ const STYLE = `
     0% { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(3px); }
     100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
   }
-  @keyframes bannerIn {
-    0% { opacity: 0; transform: translateY(-14px) scale(0.96); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
   @keyframes flameFlicker {
     0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)); }
     50% { transform: scale(1.15) rotate(4deg); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9)); }
   }
   .tab-btn-in { animation: tabBtnIn 500ms ${DOUGH_EASE} both; }
   .panel-in { animation: panelIn 450ms ${DOUGH_EASE} both; }
-  .banner-in { animation: bannerIn 500ms ${DOUGH_EASE} both; }
 `;
 
 const MOCK_STATS = { views: 1240, clicks: 318, conversionRate: '25.6%' };
@@ -73,12 +68,6 @@ export const DashboardPage = () => {
   const [stepsData, setStepsData] = useState(INITIAL_STEPS);
   const [pizzas, setPizzas] = useState(INITIAL_PIZZAS);
   const [whatsappPhone, setWhatsappPhone] = useState('+54 9 341 555-0199');
-  const [savedSuccess, setSavedSuccess] = useState(false);
-
-  const handleSave = () => {
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
 
   const togglePizzaStatus = (id) => {
     setPizzas((prev) =>
@@ -141,20 +130,7 @@ export const DashboardPage = () => {
 
       {/* Main Container */}
       <main className="relative z-10 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6 flex-1">
-        {savedSuccess && (
-          <div className="banner-in relative p-4 bg-emerald-950/90 border border-emerald-800/80 text-emerald-300 text-xs font-mono rounded-2xl flex items-center gap-2.5 shadow-xl shadow-emerald-950/30 backdrop-blur-sm overflow-hidden">
-            <div
-              className="absolute -right-4 -top-4 w-20 h-20 rounded-full opacity-20 pointer-events-none"
-              style={{ background: 'radial-gradient(circle, #10b981, transparent 70%)' }}
-            />
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 relative z-10" />
-            <span className="relative z-10">
-              ¡Cambios registrados localmente! Listo para enviar a la API.
-            </span>
-          </div>
-        )}
-
-        {/* Contenedor de Pestañas con padding de resguardo para evitar recortes */}
+        {/* Contenedor de Pestañas */}
         <div className="border-b border-stone-800/80 pb-3">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1.5 py-1.5 -mx-1.5">
             {TABS.map(({ id, label, icon: Icon }, i) => {
@@ -190,7 +166,6 @@ export const DashboardPage = () => {
             <HeroEditorTab
               heroData={heroData}
               setHeroData={setHeroData}
-              onSave={handleSave}
             />
           )}
 
@@ -198,7 +173,6 @@ export const DashboardPage = () => {
             <StepsEditorTab
               stepsData={stepsData}
               setStepsData={setStepsData}
-              onSave={handleSave}
             />
           )}
 
@@ -207,7 +181,7 @@ export const DashboardPage = () => {
           )}
 
           {activeTab === 'whatsapp' && (
-            <WhatsappTab phone={whatsappPhone} setPhone={setWhatsappPhone} onSave={handleSave} />
+            <WhatsappTab phone={whatsappPhone} setPhone={setWhatsappPhone} />
           )}
         </div>
       </main>
