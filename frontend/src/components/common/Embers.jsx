@@ -8,7 +8,6 @@ const DEFAULT_EMBERS = [
   { left: '50%', size: 3, delay: '4.4s', duration: '11s' },
 ];
 
-// Brasas flotantes de fondo — mismo criterio visual en Hero y OrderProcessSection
 export const Embers = ({ embers = DEFAULT_EMBERS, bottom = 'bottom-16' }) => {
   return (
     <>
