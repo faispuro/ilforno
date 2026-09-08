@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 
 export enum EventType {
   VISIT = 'VISIT',
@@ -9,5 +9,6 @@ export class TrackEventDto {
   @IsEnum(EventType, {
     message: 'El tipo de evento debe ser VISIT o WHATSAPP_CLICK',
   })
-  type!: EventType;
+  @IsNotEmpty()
+  type: EventType;
 }

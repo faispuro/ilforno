@@ -1,22 +1,26 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class ProcessStepDto {
   @IsString()
   @IsNotEmpty()
-  step!: string; // ej: "001", "002"
+  step!: string;
 
   @IsString()
   @IsNotEmpty()
   title!: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  description!: string;
+  description?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  image!: string;
+  desc?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
 }
 
 export class UpdateOficioDto {

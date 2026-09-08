@@ -1,17 +1,13 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateHeroDto {
   @IsString()
   @IsNotEmpty()
-  backgroundImage!: string;
+  titleHighlight!: string;
 
   @IsString()
   @IsNotEmpty()
-  highlightTitle!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  secondaryTitle!: string;
+  titleMain!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -19,9 +15,13 @@ export class UpdateHeroDto {
 
   @IsString()
   @IsNotEmpty()
-  badgeSubtext!: string;
+  badgeText!: string;
 
   @IsString()
   @IsNotEmpty()
-  briefDescription!: string;
+  description!: string;
+
+  @IsOptional()
+  @IsString()
+  bgImage?: string | null;
 }
