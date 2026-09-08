@@ -13,51 +13,49 @@ const STYLE = `
   }
 `;
 
-export const FeaturesSection = () => {
+export const FeaturesSection = ({ steps = [] }) => {
   const [activeStep, setActiveStep] = useState(0);
 
-  const steps = [
+  const formattedSteps = (steps.length ? steps : [
     {
-      step: "01",
-      icon: <Clock className="w-6 h-6 text-stone-100 group-hover:text-red-500 transition-colors" />,
-      tag: "48 HORAS",
-      title: "MASA Y LEUDADO",
-      description: "Fermentación lenta en frío para lograr una masa liviana, de fácil digestión y bordes aireados.",
-      image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1200&auto=format&fit=crop"
+      step: '01',
+      title: '48 HORAS · MASA Y LEUDADO',
+      desc: 'Fermentación lenta en frío para lograr una masa liviana.',
+      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1200&auto=format&fit=crop'
     },
     {
-      step: "02",
-      icon: <UtensilsCrossed className="w-6 h-6 text-stone-100 group-hover:text-red-500 transition-colors" />,
-      tag: "100% ARTESANAL",
-      title: "INGREDIENTES FRESCOS",
-      description: "Muzzarella de primera marca, salsa casera de tomate perita y vegetales seleccionados.",
-      image: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=1200&auto=format&fit=crop"
+      step: '02',
+      title: '100% ARTESANAL · INGREDIENTES FRESCOS',
+      desc: 'Muzzarella de primera marca y salsa casera.',
+      image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=1200&auto=format&fit=crop'
     },
     {
-      step: "03",
-      icon: <Flame className="w-6 h-6 text-stone-100 group-hover:text-red-500 transition-colors" />,
-      tag: "PRE-COCCIÓN",
-      title: "GOLPE DE HORNO",
-      description: "Base cocida a alta temperatura para asegurar la rigidez perfecta antes de envasar.",
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop"
+      step: '03',
+      title: 'PRE-COCCIÓN · GOLPE DE HORNO',
+      desc: 'Base cocida a alta temperatura.',
+      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop'
     },
     {
-      step: "04",
-      icon: <PackageCheck className="w-6 h-6 text-stone-100 group-hover:text-red-500 transition-colors" />,
-      tag: "LISTAS PARA HOY",
-      title: "DIRECTO A TU HORNO",
-      description: "Las guardás en el freezer y en pocos minutos las tenés listas, crocantes y humeantes en tu mesa.",
-      image: "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=1200&auto=format&fit=crop"
+      step: '04',
+      title: 'LISTAS PARA HOY · DIRECTO A TU HORNO',
+      desc: 'Las guardás en el freezer y listas en minutos.',
+      image: 'https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=1200&auto=format&fit=crop'
     }
-  ];
+  ]).map((item, index) => ({
+    ...item,
+    icon: [Clock, UtensilsCrossed, Flame, PackageCheck][index % 4],
+    tag: item.title?.split('·')[0]?.trim() || ['48 HORAS', '100% ARTESANAL', 'PRE-COCCIÓN', 'LISTAS PARA HOY'][index],
+    description: item.desc || item.description || 'Paso artesanal de la cocina.',
+    image: item.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop'
+  }));
 
   // Rotación automática
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % steps.length);
+      setActiveStep((prev) => (prev + 1) % formattedSteps.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [steps.length]);
+  }, [formattedSteps.length]);
 
   return (
     <section className="relative bg-stone-950 text-stone-100 py-20 px-4 sm:px-6 lg:px-8 border-t border-stone-800/80 overflow-hidden">
@@ -99,8 +97,9 @@ export const FeaturesSection = () => {
             baseDelay={0}
             step={120}
           >
-            {steps.map((item, index) => {
+            {formattedSteps.map((item, index) => {
               const isActive = activeStep === index;
+              const Icon = item.icon;
               return (
                 <div
                   key={index}
@@ -119,7 +118,7 @@ export const FeaturesSection = () => {
                             ? 'border-red-500 bg-red-950/30'
                             : 'border-stone-700/80 bg-stone-900 group-hover:border-red-500'
                         }`}>
-                          {item.icon}
+                          <Icon className="w-6 h-6 text-stone-100 group-hover:text-red-500 transition-colors" />
                         </div>
 
                         <div>
@@ -152,7 +151,7 @@ export const FeaturesSection = () => {
           </StaggerGroup>
 
           <div className="lg:col-span-6 h-100 sm:h-125 relative rounded-3xl overflow-hidden border border-stone-800 shadow-2xl bg-stone-950">
-            {steps.map((item, index) => (
+            {formattedSteps.map((item, index) => (
               <div
                 key={index}
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${

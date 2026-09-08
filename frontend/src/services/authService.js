@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api'; // Ajustá según la URL de tu backend
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const authService = {
   login: async (credentials) => {
@@ -14,9 +14,12 @@ export const authService = {
     }
 
     const data = await response.json();
-    if (data.token) {
-      localStorage.setItem('token', data.token);
+    const token = data.access_token || data.token;
+
+    if (token) {
+      localStorage.setItem('token', token);
     }
+
     return data;
   },
 

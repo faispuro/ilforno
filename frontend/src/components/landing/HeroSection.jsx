@@ -23,8 +23,17 @@ const HERO_STYLE = `
   .hero-badge-in { animation: heroBadgeIn 900ms var(--dough-ease, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
 `;
 
-export const HeroSection = ({ onNavigateToMenu }) => {
+export const HeroSection = ({ onNavigateToMenu, hero = {} }) => {
   const mounted = useMountReveal(50);
+  const heroData = {
+    titleHighlight: 'La mejor pizza a la piedra',
+    titleMain: 'que buscás está acá',
+    badgeYears: 'MÁS DE 10 AÑOS',
+    badgeText: 'compartiendo con vos',
+    description: 'Nuestra pizzería familiar se ha convertido en un referente de la ciudad, ofreciendo las mejores pizzas a la piedra elaboradas con harina seleccionada y fermentación lenta.',
+    bgImage: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1600&auto=format&fit=crop',
+    ...hero,
+  };
 
   const handleScroll = () => {
     if (onNavigateToMenu) {
@@ -44,7 +53,7 @@ export const HeroSection = ({ onNavigateToMenu }) => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1600&auto=format&fit=crop')`,
+            backgroundImage: `url('${heroData.bgImage}')`,
             animation: 'bgSlowZoom 12s ease-out forwards',
           }}
         />
@@ -61,24 +70,22 @@ export const HeroSection = ({ onNavigateToMenu }) => {
                 style={{ animationDelay: '0ms' }}
               >
                 <Flame className="w-3.5 h-3.5" style={{ animation: 'flame-flicker 1.6s ease-in-out infinite' }} />
-                IL FONDO • TRATTORIA
+                {heroData.badgeYears || 'IL FONDO • TRATTORIA'}
               </span>
 
               <h1
                 className="hero-in text-5xl sm:text-7xl font-black uppercase tracking-tight text-stone-100 leading-tight font-serif drop-shadow-md"
                 style={{ animationDelay: '150ms' }}
               >
-                La mejor pizza a la piedra <br className="hidden sm:inline" />
-                <span className="text-red-500">que buscás está acá</span>
+                {heroData.titleHighlight} <br className="hidden sm:inline" />
+                <span className="text-red-500">{heroData.titleMain}</span>
               </h1>
 
               <div
                 className="hero-in flex items-center justify-center gap-3 text-red-500 font-bold tracking-wider uppercase text-sm sm:text-base"
                 style={{ animationDelay: '320ms' }}
               >
-                <span>ROSARIO</span>
-                <span>•</span>
-                <span>MASA MADRE</span>
+                <span>{heroData.badgeText || 'ROSARIO'}</span>
               </div>
 
               <div
@@ -113,16 +120,16 @@ export const HeroSection = ({ onNavigateToMenu }) => {
 
           <div className="space-y-2 text-center md:text-left">
             <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight leading-none">
-              MÁS DE 10 AÑOS
+              {heroData.badgeYears}
             </h2>
             <p className="text-xl sm:text-2xl font-bold text-red-200 tracking-wider uppercase">
-              compartiendo con vos
+              {heroData.badgeText}
             </p>
           </div>
 
           <div className="text-sm sm:text-base leading-relaxed text-red-100 font-medium space-y-3 text-center md:text-left">
             <p>
-              Nuestra pizzería familiar se ha convertido en un referente de la ciudad, ofreciendo las mejores pizzas a la piedra elaboradas con harina seleccionada y fermentación lenta.
+              {heroData.description}
             </p>
             <p className="font-semibold text-white">
               Trabajamos a pedido para garantizar que cada pizza salga crocante, fresca y al instante.

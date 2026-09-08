@@ -21,14 +21,16 @@ const STYLE = `
   .glow-bg { animation: pulseGlow 6s ease-in-out infinite; }
 `;
 
-export const MetricsTab = ({ stats, activePizzasCount }) => {
-  const conversionNum = parseFloat(String(stats.conversionRate).replace(',', '.')) || 0;
-  const ringDeg = Math.min(conversionNum, 100) * 3.6;
+export const MetricsTab = ({ stats = {}, activePizzasCount = 0 }) => {
+  // Parsing seguro del porcentaje de conversión
+  const rawRate = String(stats.conversionRate ?? '0').replace('%', '').replace(',', '.');
+  const conversionNum = Math.min(Math.max(parseFloat(rawRate) || 0, 0), 100);
+  const ringDeg = conversionNum * 3.6;
 
   const cards = [
     {
       label: 'Visitas Totales',
-      value: stats.views,
+      value: stats.views ?? 0,
       icon: Eye,
       accent: 'amber',
       glowColor: 'from-amber-600/10 to-transparent',
@@ -40,7 +42,7 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
     },
     {
       label: 'Pedir por WhatsApp',
-      value: stats.clicks,
+      value: stats.clicks ?? 0,
       icon: MousePointerClick,
       accent: 'amber',
       glowColor: 'from-amber-500/15 to-transparent',
@@ -60,11 +62,12 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
     <div className="space-y-8">
       <style>{STYLE}</style>
 
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800/80 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest font-bold flex items-center gap-1 bg-amber-950/50 border border-amber-900/50 px-2.5 py-1 rounded-full">
-              <Flame className="w-3.5 h-3.5 text-amber-500" style={{ animation: 'flameFlicker 1.8s ease-in-out infinite' }} />
+              <Flame className="w-3.5 h-3.5 text-amber-500 animate-[flameFlicker_1.8s_ease-in-out_infinite]" />
               Panel de Rendimiento
             </span>
           </div>
@@ -76,7 +79,7 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-stone-900/90 border border-stone-800 px-3.5 py-2 rounded-xl text-xs font-mono text-emerald-400 shadow-inner">
+        <div className="flex items-center gap-2 bg-stone-900/90 border border-stone-800 px-3.5 py-2 rounded-xl text-xs font-mono text-emerald-400 shadow-inner w-fit">
           <span className="relative flex w-2.5 h-2.5">
             <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 animate-ping opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
@@ -85,6 +88,7 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
         </div>
       </div>
 
+      {/* Grid de Tarjetas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map((card, i) => {
           const Icon = card.icon;
@@ -97,6 +101,7 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
               } p-6 rounded-3xl overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50`}
               style={{ animationDelay: `${i * 90}ms` }}
             >
+              {/* Ajustado bg-gradient-to-br para compatibilidad Tailwind v3 */}
               <div
                 className={`absolute inset-0 bg-linear-to-br ${card.glowColor} opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none`}
               />
@@ -130,6 +135,7 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
           );
         })}
 
+        {/* Tarjeta de Tasa de Conversión */}
         <div
           className="metric-card-in relative bg-stone-900/40 border border-amber-900/40 hover:border-amber-600/60 p-6 rounded-3xl overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50 flex flex-col justify-between"
           style={{ animationDelay: `${cards.length * 90}ms` }}
@@ -153,7 +159,9 @@ export const MetricsTab = ({ stats, activePizzasCount }) => {
               }}
             >
               <div className="absolute inset-1.5 rounded-full bg-stone-950 flex items-center justify-center border border-stone-800/80">
-                <span className="text-xs font-serif font-black text-amber-400">{stats.conversionRate}</span>
+                <span className="text-xs font-serif font-black text-amber-400">
+                  {stats.conversionRate ?? '0%'}
+                </span>
               </div>
             </div>
             <div>

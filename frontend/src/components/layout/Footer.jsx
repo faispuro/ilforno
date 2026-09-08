@@ -1,5 +1,7 @@
 import React from 'react';
 import { Flame, MessageCircle, Pizza } from 'lucide-react';
+import { trackEvent } from '../../services/analyticsService';
+import { useLandingContent } from '../../context/LandingContext';
 
 // Genera el recorte dentado tipo "masa mordida" para la transición superior
 const zigzagClip = (() => {
@@ -14,10 +16,15 @@ const zigzagClip = (() => {
   return `polygon(${points.join(', ')})`;
 })();
 
-const WHATSAPP_NUMBER = '543410000000';
-const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Tengo una duda 🍕')}`;
-
 export const Footer = () => {
+  const { whatsapp } = useLandingContent();
+  const phone = (whatsapp || '+54 9 341 555-0199').replace(/\D/g, '');
+  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Tengo una duda 🍕')}`;
+  // Handler para registrar la métrica al hacer clic en el enlace de WhatsApp
+  const handleWhatsappClick = () => {
+    trackEvent('WHATSAPP_CLICK');
+  };
+
   return (
     <footer className="relative bg-stone-950 text-stone-100">
 
@@ -76,7 +83,8 @@ export const Footer = () => {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs py-2.5 rounded-sm transition-colors"
+              onClick={handleWhatsappClick}
+              className="flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs py-2.5 rounded-sm transition-colors cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
               ¿Tenés alguna duda?

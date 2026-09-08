@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Pizza, MessageCircle } from 'lucide-react';
-
-const WHATSAPP_NUMBER = '543410000000';
-const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
+import { trackEvent } from '../../services/analyticsService';
+import { useLandingContent } from '../../context/LandingContext';
 
 export const Navbar = () => {
   const { pathname, hash } = useLocation();
   const navigate = useNavigate();
+  const { whatsapp } = useLandingContent();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const phone = (whatsapp || '+54 9 341 555-0199').replace(/\D/g, '');
+  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
+
+  // Handler para trackear el clic antes de ir a WhatsApp
+  const handleWhatsappClick = () => {
+    trackEvent('WHATSAPP_CLICK');
+  };
 
   // Escucha si la sección #menu está actualmente visible en pantalla
   useEffect(() => {
@@ -141,6 +148,7 @@ export const Navbar = () => {
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleWhatsappClick}
             className="relative flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold pl-4 pr-3 py-2.5 transition-all duration-150 cursor-pointer"
             style={{ clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%)' }}
           >

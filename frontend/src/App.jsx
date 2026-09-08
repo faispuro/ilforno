@@ -8,6 +8,7 @@ import './styles/pizzeria-animations.css';
 
 // Contexto y Protecciones de Admin
 import { AuthProvider } from './context/AuthContext';
+import { LandingProvider } from './context/LandingContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Páginas del Admin
@@ -17,7 +18,8 @@ import { DashboardPage } from './pages/admin/DashboardPage';
 export function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <LandingProvider>
+        <Routes>
         {/* 1. RUTAS PÚBLICAS (Con Navbar y Footer) */}
         <Route
           path="/*"
@@ -40,7 +42,8 @@ export function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/admin/dashboard" element={<DashboardPage />} />
         </Route>
-      </Routes>
+        </Routes>
+      </LandingProvider>
     </AuthProvider>
   );
 }

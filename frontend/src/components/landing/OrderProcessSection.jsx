@@ -3,9 +3,6 @@ import { MessageCircle, ClipboardList, CalendarCheck, Flame } from 'lucide-react
 import { Embers } from '../common/Embers';
 import { ScrollSection } from '../common/ScrollSection';
 
-const WHATSAPP_NUMBER = '543410000000';
-const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
-
 const steps = [
   {
     step: '01',
@@ -42,7 +39,10 @@ const STEAM_STYLE = `
   }
 `;
 
-export const OrderProcessSection = () => {
+export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
+  const phone = whatsapp.replace(/\D/g, '') || '543415550199';
+  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
+
   return (
     <section className="relative bg-stone-950 text-stone-100 py-20 px-4 sm:px-6 lg:px-8 border-t border-stone-800/80 overflow-hidden">
       <style>{STEAM_STYLE}</style>

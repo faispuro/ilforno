@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, Flame, BarChart3, Image as ImageIcon, BookOpen, Pizza, MessageSquare, ShieldCheck } from 'lucide-react';
+import API from '../../services/api';
 
 import { MetricsTab } from '../../components/admin/MetricsTab';
 import { HeroEditorTab } from '../../components/admin/HeroEditorTab';
 import { StepsEditorTab } from '../../components/admin/StepsEditorTab';
 import { MenuEditorTab } from '../../components/admin/MenuEditorTab';
 import { WhatsappTab } from '../../components/admin/WhatsappTab';
+import { getAnalyticsStats } from '../../services/analyticsService';
 
 const DOUGH_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
@@ -27,8 +29,6 @@ const STYLE = `
   .panel-in { animation: panelIn 450ms ${DOUGH_EASE} both; }
 `;
 
-const MOCK_STATS = { views: 1240, clicks: 318, conversionRate: '25.6%' };
-
 const INITIAL_HERO = {
   titleHighlight: 'La mejor pizza a la piedra',
   titleMain: 'que buscás está acá',
@@ -36,7 +36,7 @@ const INITIAL_HERO = {
   badgeText: 'compartiendo con vos',
   description:
     'Nuestra pizzería familiar se ha convertido en un referente de la ciudad, ofreciendo las mejores pizzas a la piedra elaboradas con harina seleccionada y fermentación lenta.',
-  bgImage: null,
+  bgImage: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1600&auto=format&fit=crop',
 };
 
 const INITIAL_STEPS = [
@@ -46,10 +46,7 @@ const INITIAL_STEPS = [
   { step: '04', title: 'LISTAS PARA HOY · DIRECTO A TU HORNO', desc: 'Las guardás en el freezer y listas en minutos.', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38' },
 ];
 
-const INITIAL_PIZZAS = [
-  { id: 1, orderNumber: '01', name: 'Muzzarella Tradicional', price: 9500, tagBadge: 'RECOMENDADA', description: 'Salsa de tomate casera, abundante muzzarella, aceitunas verdes y orégano.', image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee', available: true },
-  { id: 2, orderNumber: '02', name: 'Fugazzeta Especial', price: 11000, tagBadge: 'MÁS VENDIDA', description: 'Doble capa de muzzarella, cebolla caramelizada y orégano.', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591', available: true },
-];
+const INITIAL_PIZZAS = [];
 
 const TABS = [
   { id: 'metrics', label: 'Métricas', icon: BarChart3 },
@@ -64,16 +61,161 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('metrics');
   const [panelKey, setPanelKey] = useState(0);
 
+  // 2. Estado para almacenar las métricas reales
+  const [stats, setStats] = useState({ views: 0, clicks: 0, conversionRate: '0%' });
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+
   const [heroData, setHeroData] = useState(INITIAL_HERO);
   const [stepsData, setStepsData] = useState(INITIAL_STEPS);
   const [pizzas, setPizzas] = useState(INITIAL_PIZZAS);
   const [whatsappPhone, setWhatsappPhone] = useState('+54 9 341 555-0199');
+  const [loadingContent, setLoadingContent] = useState(true);
 
-  const togglePizzaStatus = (id) => {
-    setPizzas((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, available: !item.available } : item))
-    );
+  const normalizeSteps = (value) => {
+    if (Array.isArray(value)) return value;
+    if (value && Array.isArray(value.steps)) return value.steps;
+    return INITIAL_STEPS;
   };
+
+  useEffect(() => {
+    const fetchDashboardContent = async () => {
+      try {
+        const [heroRes, stepsRes, pizzasRes, whatsappRes] = await Promise.all([
+          API.get('/landing/hero').catch(() => ({ data: INITIAL_HERO })),
+          API.get('/landing/oficio').catch(() => ({ data: { steps: INITIAL_STEPS } })),
+          API.get('/pizzas').catch(() => ({ data: [] })),
+          API.get('/landing/whatsapp').catch(() => ({ data: { phone: '+54 9 341 555-0199' } })),
+        ]);
+
+        setHeroData(heroRes.data || INITIAL_HERO);
+        setStepsData(normalizeSteps(stepsRes.data));
+        setPizzas((pizzasRes.data || []).map((pizza) => ({
+          ...pizza,
+          id: pizza.id,
+          orderNumber: String(pizza.orderNumber),
+          price: Number(pizza.price || 0),
+          available: pizza.available ?? true,
+          previewImage: pizza.previewImage || pizza.image,
+        })));
+        setWhatsappPhone(whatsappRes.data?.phone || whatsappRes.data?.phoneNumber || '+54 9 341 555-0199');
+      } catch (error) {
+        console.error('Error cargando contenido del dashboard:', error);
+      } finally {
+        setLoadingContent(false);
+      }
+    };
+
+    fetchDashboardContent();
+  }, []);
+
+  useEffect(() => {
+    if (!loadingContent) {
+      const persistContent = async () => {
+        try {
+          const safeSteps = Array.isArray(stepsData) ? stepsData : INITIAL_STEPS;
+          await Promise.all([
+            API.put('/landing/hero', {
+              titleHighlight: heroData.titleHighlight,
+              titleMain: heroData.titleMain,
+              badgeYears: heroData.badgeYears,
+              badgeText: heroData.badgeText,
+              description: heroData.description,
+              bgImage: heroData.bgImage,
+            }),
+            API.put('/landing/oficio', {
+              steps: safeSteps.map((step) => ({
+                ...step,
+                description: step.description ?? step.desc ?? '',
+                desc: step.desc ?? step.description ?? '',
+              })),
+            }),
+            API.put('/landing/whatsapp', { phoneNumber: whatsappPhone }),
+          ]);
+        } catch (error) {
+          console.error('Error persisting landing content:', error);
+        }
+      };
+
+      persistContent();
+    }
+  }, [heroData, stepsData, whatsappPhone, loadingContent]);
+
+  const saveHero = async (field, payload) => {
+    const updated = { ...heroData, ...payload };
+    setHeroData(updated);
+    await API.put('/landing/hero', updated);
+  };
+
+  const saveSteps = async (payload) => {
+    const safeSteps = Array.isArray(payload) ? payload : INITIAL_STEPS;
+    setStepsData(safeSteps);
+    await API.put('/landing/oficio', {
+      steps: safeSteps.map((step) => ({
+        ...step,
+        description: step.description ?? step.desc ?? '',
+        desc: step.desc ?? step.description ?? '',
+      })),
+    });
+  };
+
+  const saveWhatsapp = async (phone) => {
+    const normalized = phone || '+54 9 341 555-0199';
+    setWhatsappPhone(normalized);
+    await API.put('/landing/whatsapp', { phoneNumber: normalized });
+  };
+
+  const savePizza = async (pizzaData, currentPizza) => {
+    const payload = {
+      ...pizzaData,
+      price: Number(pizzaData.price || 0),
+      image: pizzaData.image || pizzaData.previewImage,
+      available: pizzaData.available ?? true,
+    };
+
+    if (currentPizza?.id) {
+      const response = await API.put(`/pizzas/${currentPizza.id}`, payload);
+      setPizzas((prev) => prev.map((item) => (item.id === currentPizza.id ? { ...item, ...response.data } : item)));
+      return response.data;
+    }
+
+    const response = await API.post('/pizzas', payload);
+    setPizzas((prev) => [...prev, { ...response.data, orderNumber: String(response.data.orderNumber) }]);
+    return response.data;
+  };
+
+  const deletePizza = async (id) => {
+    await API.delete(`/pizzas/${id}`);
+    setPizzas((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const togglePizzaStatus = async (id) => {
+    const target = pizzas.find((pizza) => pizza.id === id);
+    if (!target) return;
+
+    const updated = await API.put(`/pizzas/${id}`, { ...target, available: !target.available, price: Number(target.price || 0) });
+    setPizzas((prev) => prev.map((item) => (item.id === id ? { ...item, ...updated.data, available: updated.data.available } : item)));
+  };
+
+  // 3. Cargar métricas reales cuando la pestaña activa sea 'metrics'
+  useEffect(() => {
+    if (activeTab === 'metrics') {
+      const fetchMetrics = async () => {
+        setLoadingMetrics(true);
+        try {
+          const data = await getAnalyticsStats();
+          if (data) {
+            setStats(data);
+          }
+        } catch (error) {
+          console.error('Error al cargar métricas:', error);
+        } finally {
+          setLoadingMetrics(false);
+        }
+      };
+
+      fetchMetrics();
+    }
+  }, [activeTab]);
 
   const changeTab = (id) => {
     setActiveTab(id);
@@ -159,13 +301,19 @@ export const DashboardPage = () => {
         {/* Pestañas Renderizadas */}
         <div key={panelKey} className="panel-in">
           {activeTab === 'metrics' && (
-            <MetricsTab stats={MOCK_STATS} activePizzasCount={pizzas.filter((p) => p.available).length} />
+            // 4. Pasar las métricas reales y el estado de carga
+            <MetricsTab 
+              stats={stats} 
+              loading={loadingMetrics}
+              activePizzasCount={pizzas.filter((p) => p.available).length} 
+            />
           )}
 
           {activeTab === 'hero' && (
             <HeroEditorTab
               heroData={heroData}
               setHeroData={setHeroData}
+              onSave={saveHero}
             />
           )}
 
@@ -173,15 +321,22 @@ export const DashboardPage = () => {
             <StepsEditorTab
               stepsData={stepsData}
               setStepsData={setStepsData}
+              onSave={saveSteps}
             />
           )}
 
           {activeTab === 'menu' && (
-            <MenuEditorTab pizzas={pizzas} setPizzas={setPizzas} onToggleStatus={togglePizzaStatus} />
+            <MenuEditorTab
+              pizzas={pizzas}
+              setPizzas={setPizzas}
+              onToggleStatus={togglePizzaStatus}
+              onSave={savePizza}
+              onDelete={deletePizza}
+            />
           )}
 
           {activeTab === 'whatsapp' && (
-            <WhatsappTab phone={whatsappPhone} setPhone={setWhatsappPhone} />
+            <WhatsappTab phone={whatsappPhone} setPhone={setWhatsappPhone} onSave={() => saveWhatsapp(whatsappPhone)} />
           )}
         </div>
       </main>

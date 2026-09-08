@@ -20,9 +20,10 @@ const STYLE = `
 
 export const StepsEditorTab = ({ stepsData, setStepsData, onSave }) => {
   const { isSaving, toast, submitWithToast } = useFormSubmit();
+  const safeSteps = Array.isArray(stepsData) ? stepsData : [];
 
   const handleStepChange = (index, field, value) => {
-    const updated = [...stepsData];
+    const updated = [...safeSteps];
     updated[index] = { ...updated[index], [field]: value };
     setStepsData(updated);
   };
@@ -30,7 +31,7 @@ export const StepsEditorTab = ({ stepsData, setStepsData, onSave }) => {
   const handleStepImageChange = (index, file) => {
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
-    const updated = [...stepsData];
+    const updated = [...safeSteps];
     updated[index] = {
       ...updated[index],
       previewImage: previewUrl,
@@ -104,7 +105,7 @@ export const StepsEditorTab = ({ stepsData, setStepsData, onSave }) => {
         </div>
 
         <fieldset disabled={isSaving} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 border-none p-0 m-0 disabled:opacity-60 disabled:pointer-events-none">
-          {stepsData.map((stepItem, index) => {
+          {safeSteps.map((stepItem, index) => {
             const hasImg = stepItem.previewImage || stepItem.image;
 
             return (

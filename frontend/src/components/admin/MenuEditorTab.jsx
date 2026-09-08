@@ -16,7 +16,7 @@ const STYLE = `
   .block-in { animation: blockIn 650ms ${DOUGH_EASE} both; }
 `;
 
-export const MenuEditorTab = ({ pizzas, setPizzas, onToggleStatus }) => {
+export const MenuEditorTab = ({ pizzas, setPizzas, onToggleStatus, onSave, onDelete }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pizzaToEdit, setPizzaToEdit] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,7 +51,9 @@ export const MenuEditorTab = ({ pizzas, setPizzas, onToggleStatus }) => {
 
     await submitWithToast(
       async () => {
-        if (isEditing) {
+        if (onSave) {
+          await onSave(pizzaData, pizzaToEdit);
+        } else if (isEditing) {
           setPizzas((prev) =>
             prev.map((item) => (item.id === pizzaToEdit.id ? { ...pizzaData, id: pizzaToEdit.id } : item))
           );
@@ -78,7 +80,11 @@ export const MenuEditorTab = ({ pizzas, setPizzas, onToggleStatus }) => {
   const handleDeletePizza = async (id, pizzaName) => {
     await submitWithToast(
       async () => {
-        setPizzas((prev) => prev.filter((item) => item.id !== id));
+        if (onDelete) {
+          await onDelete(id);
+        } else {
+          setPizzas((prev) => prev.filter((item) => item.id !== id));
+        }
       },
       {
         successMessage: `Se eliminó "${pizzaName || 'la pizza'}" de la carta.`,
