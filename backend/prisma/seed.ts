@@ -6,20 +6,31 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Iniciando la carga de datos iniciales (Seed)...');
 
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedPassword = await bcrypt.hash('diegoencasamonte', 10);
+  const adminEmails = ['admin@ilforno.com', 'admin@ilfondo.com'];
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@ilfondo.com' },
-    update: {},
-    create: {
-      email: 'admin@ilfondo.com',
-      name: 'Admin Il Fondo',
-      password: hashedPassword,
-      role: 'ADMIN',
-    },
-  });
+  const adminRecords = await Promise.all(
+    adminEmails.map(async (email) => {
+      const admin = await prisma.user.upsert({
+        where: { email },
+        update: {
+          password: hashedPassword,
+          name: 'Admin Il Forno',
+          role: 'ADMIN',
+        },
+        create: {
+          email,
+          name: 'Admin Il Forno',
+          password: hashedPassword,
+          role: 'ADMIN',
+        },
+      });
 
-  console.log(`👤 Usuario Admin listo: ${admin.email}`);
+      return admin;
+    }),
+  );
+
+  console.log(`👤 Usuarios Admin listos: ${adminRecords.map((admin) => admin.email).join(', ')}`);
 
   const pizzas = [
     {

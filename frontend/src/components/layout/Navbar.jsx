@@ -94,7 +94,7 @@ export const Navbar = () => {
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tight text-white leading-tight font-serif uppercase drop-shadow-md">
-              Il Fondo
+              Il Forno
             </h1>
             <p className="text-[10px] font-bold text-red-500 tracking-wide drop-shadow">
               pizza a la piedra, Rosario

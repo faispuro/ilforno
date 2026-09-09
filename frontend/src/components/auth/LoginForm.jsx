@@ -52,7 +52,7 @@ export const LoginForm = () => {
               Acceso Admin
             </h1>
             <p className="text-stone-400 text-[11px] font-mono uppercase tracking-[0.25em] mt-1">
-              IL FONDO · PIZZERÍA ARTESANAL
+              IL FORNO · PIZZERÍA ARTESANAL
             </p>
           </div>
 
@@ -85,7 +85,7 @@ export const LoginForm = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@ilfondo.com"
+                placeholder="admin@ilforno.com"
                 className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-4 py-3.5 text-stone-100 text-sm focus:outline-none focus:border-amber-600/80 focus:ring-2 focus:ring-amber-600/20 transition-all font-mono placeholder:text-stone-600 shadow-inner"
               />
             </div>

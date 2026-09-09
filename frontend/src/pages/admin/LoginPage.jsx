@@ -44,7 +44,7 @@ export const LoginPage = () => {
 
       <footer className="absolute bottom-5 text-center text-[10px] font-mono text-stone-500 uppercase tracking-widest z-10 pointer-events-none flex items-center gap-1.5">
         <Flame className="w-3 h-3 text-amber-600/70 inline-block" />
-        <span>Il Fondo © {new Date().getFullYear()} — Acceso Restringido</span>
+        <span>Il Forno © {new Date().getFullYear()} — Acceso Restringido</span>
       </footer>
     </div>
   );

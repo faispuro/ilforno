@@ -164,7 +164,7 @@ export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
                         <Flame className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-stone-100 leading-none">Il Fondo</p>
+                        <p className="text-sm font-bold text-stone-100 leading-none">Il Forno</p>
                         <p className="text-[11px] text-emerald-500 font-medium mt-0.5">en línea</p>
                       </div>
                     </div>

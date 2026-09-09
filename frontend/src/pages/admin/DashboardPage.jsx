@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, Flame, BarChart3, Image as ImageIcon, BookOpen, Pizza, MessageSquare, ShieldCheck } from 'lucide-react';
 import API from '../../services/api';
+import { uploadImage } from '../../services/uploadService';
+import { pizzaService } from '../../services/pizzasService';
 
 import { MetricsTab } from '../../components/admin/MetricsTab';
 import { HeroEditorTab } from '../../components/admin/HeroEditorTab';
@@ -46,8 +48,6 @@ const INITIAL_STEPS = [
   { step: '04', title: 'LISTAS PARA HOY · DIRECTO A TU HORNO', desc: 'Las guardás en el freezer y listas en minutos.', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38' },
 ];
 
-const INITIAL_PIZZAS = [];
-
 const TABS = [
   { id: 'metrics', label: 'Métricas', icon: BarChart3 },
   { id: 'hero', label: 'Portada', icon: ImageIcon },
@@ -61,15 +61,18 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('metrics');
   const [panelKey, setPanelKey] = useState(0);
 
-  // 2. Estado para almacenar las métricas reales
   const [stats, setStats] = useState({ views: 0, clicks: 0, conversionRate: '0%' });
   const [loadingMetrics, setLoadingMetrics] = useState(false);
 
   const [heroData, setHeroData] = useState(INITIAL_HERO);
   const [stepsData, setStepsData] = useState(INITIAL_STEPS);
-  const [pizzas, setPizzas] = useState(INITIAL_PIZZAS);
   const [whatsappPhone, setWhatsappPhone] = useState('+54 9 341 555-0199');
   const [loadingContent, setLoadingContent] = useState(true);
+
+  // Solo para mostrar el contador "(N)" en el tab y el card de métricas.
+  // MenuEditorTab maneja su propia data de pizzas de forma independiente.
+  const [pizzaCount, setPizzaCount] = useState(0);
+  const [activePizzaCount, setActivePizzaCount] = useState(0);
 
   const normalizeSteps = (value) => {
     if (Array.isArray(value)) return value;
@@ -77,26 +80,28 @@ export const DashboardPage = () => {
     return INITIAL_STEPS;
   };
 
+  const refreshPizzaCounts = async () => {
+    try {
+      const data = await pizzaService.getAll();
+      const list = Array.isArray(data) ? data : [];
+      setPizzaCount(list.length);
+      setActivePizzaCount(list.filter((p) => p.available).length);
+    } catch (error) {
+      console.error('Error contando pizzas:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchDashboardContent = async () => {
       try {
-        const [heroRes, stepsRes, pizzasRes, whatsappRes] = await Promise.all([
+        const [heroRes, stepsRes, whatsappRes] = await Promise.all([
           API.get('/landing/hero').catch(() => ({ data: INITIAL_HERO })),
           API.get('/landing/oficio').catch(() => ({ data: { steps: INITIAL_STEPS } })),
-          API.get('/pizzas').catch(() => ({ data: [] })),
           API.get('/landing/whatsapp').catch(() => ({ data: { phone: '+54 9 341 555-0199' } })),
         ]);
 
         setHeroData(heroRes.data || INITIAL_HERO);
         setStepsData(normalizeSteps(stepsRes.data));
-        setPizzas((pizzasRes.data || []).map((pizza) => ({
-          ...pizza,
-          id: pizza.id,
-          orderNumber: String(pizza.orderNumber),
-          price: Number(pizza.price || 0),
-          available: pizza.available ?? true,
-          previewImage: pizza.previewImage || pizza.image,
-        })));
         setWhatsappPhone(whatsappRes.data?.phone || whatsappRes.data?.phoneNumber || '+54 9 341 555-0199');
       } catch (error) {
         console.error('Error cargando contenido del dashboard:', error);
@@ -106,97 +111,85 @@ export const DashboardPage = () => {
     };
 
     fetchDashboardContent();
+    refreshPizzaCounts();
+
+    // Si se edita/borra una pizza desde MenuEditorTab, refrescamos el contador acá también
+    const handleLandingRefresh = () => refreshPizzaCounts();
+    window.addEventListener('landing:refresh', handleLandingRefresh);
+    return () => window.removeEventListener('landing:refresh', handleLandingRefresh);
   }, []);
 
-  useEffect(() => {
-    if (!loadingContent) {
-      const persistContent = async () => {
-        try {
-          const safeSteps = Array.isArray(stepsData) ? stepsData : INITIAL_STEPS;
-          await Promise.all([
-            API.put('/landing/hero', {
-              titleHighlight: heroData.titleHighlight,
-              titleMain: heroData.titleMain,
-              badgeYears: heroData.badgeYears,
-              badgeText: heroData.badgeText,
-              description: heroData.description,
-              bgImage: heroData.bgImage,
-            }),
-            API.put('/landing/oficio', {
-              steps: safeSteps.map((step) => ({
-                ...step,
-                description: step.description ?? step.desc ?? '',
-                desc: step.desc ?? step.description ?? '',
-              })),
-            }),
-            API.put('/landing/whatsapp', { phoneNumber: whatsappPhone }),
-          ]);
-        } catch (error) {
-          console.error('Error persisting landing content:', error);
-        }
-      };
-
-      persistContent();
+  const refreshLandingFromDashboard = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('landing:refresh'));
     }
-  }, [heroData, stepsData, whatsappPhone, loadingContent]);
-
-  const saveHero = async (field, payload) => {
-    const updated = { ...heroData, ...payload };
-    setHeroData(updated);
-    await API.put('/landing/hero', updated);
   };
 
-  const saveSteps = async (payload) => {
-    const safeSteps = Array.isArray(payload) ? payload : INITIAL_STEPS;
-    setStepsData(safeSteps);
-    await API.put('/landing/oficio', {
-      steps: safeSteps.map((step) => ({
+  const saveHero = async (_field, payload) => {
+    let bgImage = payload.bgImage;
+
+    if (payload.bgImageFile) {
+      bgImage = await uploadImage(payload.bgImageFile);
+    }
+
+    const dtoPayload = {
+      titleHighlight: payload.titleHighlight,
+      titleMain: payload.titleMain,
+      badgeYears: payload.badgeYears,
+      badgeText: payload.badgeText,
+      description: payload.description,
+      bgImage,
+    };
+
+    const response = await API.put('/landing/hero', dtoPayload);
+    setHeroData({ ...response.data, bgImagePreview: null, bgImageFile: null });
+    refreshLandingFromDashboard();
+  };
+
+  const saveSteps = async (stepsInput) => {
+    const safeSteps = Array.isArray(stepsInput) ? stepsInput : Array.isArray(stepsData) ? stepsData : INITIAL_STEPS;
+
+    const uploadPromises = safeSteps.map(async (step) => {
+      if (!step.imageFile) {
+        return {
+          ...step,
+          description: step.description ?? step.desc ?? '',
+          desc: step.desc ?? step.description ?? '',
+          image: step.image || '',
+        };
+      }
+
+      const uploadedUrl = await uploadImage(step.imageFile);
+      return {
         ...step,
+        description: step.description ?? step.desc ?? '',
+        desc: step.desc ?? step.description ?? '',
+        image: uploadedUrl || step.image || '',
+      };
+    });
+
+    const normalizedSteps = await Promise.all(uploadPromises);
+
+    const response = await API.put('/landing/oficio', {
+      steps: normalizedSteps.map((step) => ({
+        ...step,
+        image: step.image || '',
         description: step.description ?? step.desc ?? '',
         desc: step.desc ?? step.description ?? '',
       })),
     });
+
+    setStepsData(normalizeSteps(response.data));
+    refreshLandingFromDashboard();
   };
 
   const saveWhatsapp = async (phone) => {
     const normalized = phone || '+54 9 341 555-0199';
-    setWhatsappPhone(normalized);
-    await API.put('/landing/whatsapp', { phoneNumber: normalized });
+    const response = await API.put('/landing/whatsapp', { phoneNumber: normalized });
+    setWhatsappPhone(response.data?.phone || response.data?.phoneNumber || normalized);
+    refreshLandingFromDashboard();
   };
 
-  const savePizza = async (pizzaData, currentPizza) => {
-    const payload = {
-      ...pizzaData,
-      price: Number(pizzaData.price || 0),
-      image: pizzaData.image || pizzaData.previewImage,
-      available: pizzaData.available ?? true,
-    };
-
-    if (currentPizza?.id) {
-      const response = await API.put(`/pizzas/${currentPizza.id}`, payload);
-      setPizzas((prev) => prev.map((item) => (item.id === currentPizza.id ? { ...item, ...response.data } : item)));
-      return response.data;
-    }
-
-    const response = await API.post('/pizzas', payload);
-    setPizzas((prev) => [...prev, { ...response.data, orderNumber: String(response.data.orderNumber) }]);
-    return response.data;
-  };
-
-  const deletePizza = async (id) => {
-    await API.delete(`/pizzas/${id}`);
-    setPizzas((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const togglePizzaStatus = async (id) => {
-    const target = pizzas.find((pizza) => pizza.id === id);
-    if (!target) return;
-
-    const updated = await API.put(`/pizzas/${id}`, { ...target, available: !target.available, price: Number(target.price || 0) });
-    setPizzas((prev) => prev.map((item) => (item.id === id ? { ...item, ...updated.data, available: updated.data.available } : item)));
-  };
-
-  // 3. Cargar métricas reales cuando la pestaña activa sea 'metrics'
   useEffect(() => {
     if (activeTab === 'metrics') {
       const fetchMetrics = async () => {
@@ -220,16 +213,15 @@ export const DashboardPage = () => {
   const changeTab = (id) => {
     setActiveTab(id);
     setPanelKey((k) => k + 1);
+    if (id === 'menu') refreshPizzaCounts();
   };
 
   return (
     <div className="relative min-h-screen bg-stone-950 text-stone-100 flex flex-col font-sans select-none overflow-x-hidden">
       <style>{STYLE}</style>
 
-      {/* Glow ambiental superior */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-150 h-36 bg-amber-600/10 blur-[100px] pointer-events-none rounded-full" />
 
-      {/* Textura de fondo sutil */}
       <div
         className="fixed inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -240,7 +232,6 @@ export const DashboardPage = () => {
         aria-hidden="true"
       />
 
-      {/* Header Admin */}
       <header className="sticky top-0 z-40 bg-stone-950/85 border-b border-stone-800/80 px-6 py-4 flex items-center justify-between backdrop-blur-md shadow-lg shadow-black/40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-800/50 flex items-center justify-center text-amber-500 shadow-inner">
@@ -249,7 +240,7 @@ export const DashboardPage = () => {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <h1 className="font-serif font-black uppercase text-base tracking-wider text-stone-100">
-                IL FONDO
+                IL FORNO
               </h1>
               <span className="bg-amber-950/70 text-amber-400 text-[10px] font-mono px-2 py-0.5 rounded-full border border-amber-800/50 flex items-center gap-1 font-bold">
                 <ShieldCheck className="w-3 h-3" /> ADMIN
@@ -270,13 +261,11 @@ export const DashboardPage = () => {
         </button>
       </header>
 
-      {/* Main Container */}
       <main className="relative z-10 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6 flex-1">
-        {/* Contenedor de Pestañas */}
         <div className="border-b border-stone-800/80 pb-3">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1.5 py-1.5 -mx-1.5">
             {TABS.map(({ id, label, icon: Icon }, i) => {
-              const count = id === 'menu' ? ` (${pizzas.length})` : '';
+              const count = id === 'menu' ? ` (${pizzaCount})` : '';
               const isActive = activeTab === id;
 
               return (
@@ -298,14 +287,12 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Pestañas Renderizadas */}
         <div key={panelKey} className="panel-in">
           {activeTab === 'metrics' && (
-            // 4. Pasar las métricas reales y el estado de carga
             <MetricsTab 
               stats={stats} 
               loading={loadingMetrics}
-              activePizzasCount={pizzas.filter((p) => p.available).length} 
+              activePizzasCount={activePizzaCount} 
             />
           )}
 
@@ -325,15 +312,7 @@ export const DashboardPage = () => {
             />
           )}
 
-          {activeTab === 'menu' && (
-            <MenuEditorTab
-              pizzas={pizzas}
-              setPizzas={setPizzas}
-              onToggleStatus={togglePizzaStatus}
-              onSave={savePizza}
-              onDelete={deletePizza}
-            />
-          )}
+          {activeTab === 'menu' && <MenuEditorTab />}
 
           {activeTab === 'whatsapp' && (
             <WhatsappTab phone={whatsappPhone} setPhone={setWhatsappPhone} onSave={() => saveWhatsapp(whatsappPhone)} />

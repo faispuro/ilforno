@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Image as ImageIcon, Save, AlertCircle, Loader2, UtensilsCrossed } from 'lucide-react';
 
 const DOUGH_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
@@ -40,15 +40,35 @@ const EMPTY_FORM = {
   imageFile: null,
 };
 
+const revokeBlobUrl = (url) => {
+  if (typeof url === 'string' && url.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+};
+
 export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizzas = [] }) => {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [shakeKey, setShakeKey] = useState(0);
   const [saving, setSaving] = useState(false);
+  const blobUrlRef = useRef(null);
+
+  const nextAvailableOrder = () => {
+    const numbers = (existingPizzas || [])
+      .map((pizza) => Number(pizza.orderNumber))
+      .filter((value) => Number.isFinite(value) && value > 0);
+
+    return numbers.length ? Math.max(...numbers) + 1 : 1;
+  };
 
   useEffect(() => {
     if (!isOpen) return;
+
+    if (blobUrlRef.current) {
+      revokeBlobUrl(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
 
     if (pizzaToEdit) {
       setFormData({
@@ -58,12 +78,22 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
         imageFile: pizzaToEdit.imageFile || null,
       });
     } else {
-      setFormData(EMPTY_FORM);
+      setFormData({
+        ...EMPTY_FORM,
+        orderNumber: String(nextAvailableOrder()),
+      });
     }
     setErrors({});
     setTouched({});
     setSaving(false);
-  }, [pizzaToEdit, isOpen]);
+
+    return () => {
+      if (blobUrlRef.current) {
+        revokeBlobUrl(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, [pizzaToEdit, isOpen, existingPizzas]);
 
   if (!isOpen) return null;
 
@@ -72,10 +102,8 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
   const validate = (data) => {
     const errs = {};
 
-    if (!data.orderNumber?.toString().trim()) {
-      errs.orderNumber = 'El número de orden es obligatorio.';
-    } else if (otherPizzas.some((p) => String(p.orderNumber).trim() === String(data.orderNumber).trim())) {
-      errs.orderNumber = `Ya existe la posición #${data.orderNumber}.`;
+    if (pizzaToEdit && !Number.isInteger(Number(data.orderNumber)) && Number(data.orderNumber) < 1) {
+      errs.orderNumber = 'La posición de la pizza no puede modificarse.';
     }
 
     if (!data.name?.trim()) {
@@ -135,17 +163,32 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
 
   const handleImageChange = (file) => {
     if (!file) return;
+
+    if (blobUrlRef.current) {
+      revokeBlobUrl(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
     const previewUrl = URL.createObjectURL(file);
+    blobUrlRef.current = previewUrl;
+
     const next = { ...formData, previewImage: previewUrl, imageFile: file };
     setFormData(next);
     setTouched((prev) => ({ ...prev, image: true }));
     revalidateLive(next);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    const allErrors = validate(formData);
+    const normalizedForm = {
+      ...formData,
+      price: Number(formData.price) || 0,
+      orderNumber: pizzaToEdit ? Number(pizzaToEdit.orderNumber) : (Number(formData.orderNumber) || 1),
+      image: formData.previewImage || formData.image,
+    };
+
+    const allErrors = validate(normalizedForm);
     setErrors(allErrors);
     setTouched({
       orderNumber: true,
@@ -161,15 +204,15 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
     }
 
     setSaving(true);
-    setTimeout(() => {
-      onSave({
-        ...formData,
-        price: Number(formData.price) || 0,
-        image: formData.previewImage || formData.image,
-      });
-      setSaving(false);
+
+    try {
+      await onSave(normalizedForm);
       onClose();
-    }, 400);
+    } catch (error) {
+      console.error('Error guardando pizza:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const fieldClass = (field, base = '') =>
@@ -222,17 +265,11 @@ export const PizzaModal = ({ isOpen, onClose, onSave, pizzaToEdit, existingPizza
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-mono text-stone-400 uppercase tracking-wider font-semibold">
-                Posición / Orden <span className="text-amber-500">*</span>
+                Posición Actual
               </label>
-              <input
-                type="text"
-                value={formData.orderNumber}
-                onChange={(e) => updateField('orderNumber', e.target.value)}
-                onBlur={() => markTouched('orderNumber')}
-                placeholder="01"
-                className={fieldClass('orderNumber')}
-              />
-              <FieldError field="orderNumber" />
+              <div className="w-full bg-stone-950/80 border border-stone-800/90 rounded-2xl px-3.5 py-2.5 text-xs font-mono text-stone-300">
+                #{Number(formData.orderNumber || 1)}
+              </div>
             </div>
 
             <div className="space-y-1.5">

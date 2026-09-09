@@ -70,7 +70,7 @@ export const HeroSection = ({ onNavigateToMenu, hero = {} }) => {
                 style={{ animationDelay: '0ms' }}
               >
                 <Flame className="w-3.5 h-3.5" style={{ animation: 'flame-flicker 1.6s ease-in-out infinite' }} />
-                {heroData.badgeYears || 'IL FONDO • TRATTORIA'}
+                {heroData.badgeYears || 'IL FORNO • TRATTORIA'}
               </span>
 
               <h1

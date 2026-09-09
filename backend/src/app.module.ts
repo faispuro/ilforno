@@ -8,15 +8,17 @@ import { PizzasModule } from './pizzas/pizzas.module';
 import { HeroModule } from './hero/hero.module';
 import { LandingModule } from './landing/landing.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    AuthModule, 
-    PizzasModule, 
-    HeroModule, 
+    PrismaModule,
+    AuthModule,
+    PizzasModule,
+    HeroModule,
     LandingModule,
-    AnalyticsModule, 
+    AnalyticsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

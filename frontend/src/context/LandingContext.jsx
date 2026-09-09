@@ -34,16 +34,19 @@ export const LandingProvider = ({ children }) => {
   });
 
   const normalizeMenu = (items = []) =>
-    items.map((pizza, index) => ({
-      id: pizza.id ?? `${pizza.name || 'pizza'}-${index}`,
-      name: pizza.name || 'Pizza',
-      description: pizza.description || 'Pizza artesanal preparada a la piedra.',
-      price: Number(pizza.price ?? 0),
-      image: pizza.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591',
-      tag: pizza.tagBadge || 'RECOMENDADA',
-      available: pizza.available ?? true,
-      orderNumber: pizza.orderNumber ?? index + 1,
-    }));
+    items
+      .filter((pizza) => pizza.available !== false)
+      .map((pizza, index) => ({
+        id: pizza.id ?? `${pizza.name || 'pizza'}-${index}`,
+        name: pizza.name || 'Pizza',
+        description: pizza.description || 'Pizza artesanal preparada a la piedra.',
+        price: Number(pizza.price ?? 0),
+        image: pizza.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591',
+        tag: pizza.tagBadge || 'RECOMENDADA',
+        available: pizza.available ?? true,
+        orderNumber: pizza.orderNumber ?? index + 1,
+      }))
+      .sort((a, b) => Number(a.orderNumber ?? 0) - Number(b.orderNumber ?? 0));
 
   const hydrate = async () => {
     try {
@@ -71,6 +74,16 @@ export const LandingProvider = ({ children }) => {
 
   useEffect(() => {
     hydrate();
+
+    const handleLandingRefresh = () => {
+      hydrate();
+    };
+
+    window.addEventListener('landing:refresh', handleLandingRefresh);
+
+    return () => {
+      window.removeEventListener('landing:refresh', handleLandingRefresh);
+    };
   }, []);
 
   const value = useMemo(

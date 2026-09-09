@@ -62,6 +62,11 @@ export const HeroEditorTab = ({ heroData, setHeroData, onSave }) => {
 
   const handleHeroBgImageChange = (file) => {
     if (!file) return;
+
+    if (heroData.bgImagePreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(heroData.bgImagePreview);
+    }
+
     const previewUrl = URL.createObjectURL(file);
     const updated = {
       ...heroData,
@@ -76,6 +81,10 @@ export const HeroEditorTab = ({ heroData, setHeroData, onSave }) => {
   };
 
   const handleRemoveHeroBg = () => {
+    if (heroData.bgImagePreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(heroData.bgImagePreview);
+    }
+
     const updated = {
       ...heroData,
       bgImagePreview: null,
