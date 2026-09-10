@@ -19,7 +19,7 @@ const zigzagClip = (() => {
 export const Footer = () => {
   const { whatsapp } = useLandingContent();
   const phone = (whatsapp || '+54 9 341 555-0199').replace(/\D/g, '');
-  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Tengo una duda 🍕')}`;
+  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Tengo una duda.')}`;
   // Handler para registrar la métrica al hacer clic en el enlace de WhatsApp
   const handleWhatsappClick = () => {
     trackEvent('WHATSAPP_CLICK');
@@ -58,7 +58,7 @@ export const Footer = () => {
             <div className="w-28 h-28 rounded-full border-2 border-red-300/40 flex flex-col items-center justify-center text-center rotate-6 hover:rotate-0 transition-transform duration-300 shrink-0">
               <Pizza className="w-7 h-7 text-white mb-1" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-red-100 leading-tight">
-                Rosario<br />desde 2014
+                BAHIA BLANCA<br />desde 2024
               </span>
             </div>
           </div>

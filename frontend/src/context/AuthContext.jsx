@@ -8,12 +8,26 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = authService.getToken();
-    if (token) {
-      // Si hay token, mantenemos la sesión activa
-      setUser({ token });
-    }
-    setIsLoading(false);
+    const verifySession = async () => {
+      const token = authService.getToken();
+
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        authService.logout();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifySession();
   }, []);
 
   const login = async (credentials) => {

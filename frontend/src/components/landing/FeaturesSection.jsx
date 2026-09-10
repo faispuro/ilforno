@@ -176,7 +176,7 @@ export const FeaturesSection = ({ steps = [] }) => {
                     </h4>
                   </div>
                   <span className="hidden sm:block text-[10px] font-black text-stone-400 tracking-widest uppercase font-serif drop-shadow">
-                    TRATTORIA • ROSARIO
+                    PIZZERIA • BAHIA BLANCA
                   </span>
                 </div>
               </div>

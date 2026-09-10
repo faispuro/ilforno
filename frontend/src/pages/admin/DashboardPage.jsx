@@ -16,19 +16,38 @@ const DOUGH_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
 const STYLE = `
   @keyframes tabBtnIn {
-    0% { opacity: 0; transform: translateY(-10px) scale(0.92); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
   @keyframes panelIn {
-    0% { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(3px); }
-    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
   @keyframes flameFlicker {
-    0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)); }
-    50% { transform: scale(1.15) rotate(4deg); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9)); }
+    0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.55)); }
+    50% { transform: scale(1.1) rotate(4deg); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.85)); }
   }
-  .tab-btn-in { animation: tabBtnIn 500ms ${DOUGH_EASE} both; }
-  .panel-in { animation: panelIn 450ms ${DOUGH_EASE} both; }
+  .tab-btn-in {
+    animation: tabBtnIn 220ms ${DOUGH_EASE} both;
+    will-change: transform, opacity;
+  }
+  .panel-in {
+    animation: panelIn 220ms ${DOUGH_EASE} both;
+    will-change: transform, opacity;
+  }
+  .dashboard-tab {
+    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+    will-change: transform;
+  }
+  .dashboard-tab:hover {
+    transform: translateY(-1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tab-btn-in, .panel-in, .dashboard-tab {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
 `;
 
 const INITIAL_HERO = {
@@ -60,6 +79,7 @@ export const DashboardPage = () => {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('metrics');
   const [panelKey, setPanelKey] = useState(0);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const [stats, setStats] = useState({ views: 0, clicks: 0, conversionRate: '0%' });
   const [loadingMetrics, setLoadingMetrics] = useState(false);
@@ -210,9 +230,21 @@ export const DashboardPage = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) {
+        setIsMobileNavOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const changeTab = (id) => {
     setActiveTab(id);
     setPanelKey((k) => k + 1);
+    setIsMobileNavOpen(false);
     if (id === 'menu') refreshPizzaCounts();
   };
 
@@ -232,21 +264,35 @@ export const DashboardPage = () => {
         aria-hidden="true"
       />
 
-      <header className="sticky top-0 z-40 bg-stone-950/85 border-b border-stone-800/80 px-6 py-4 flex items-center justify-between backdrop-blur-md shadow-lg shadow-black/40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-800/50 flex items-center justify-center text-amber-500 shadow-inner">
+      <header className="sticky top-0 z-40 bg-stone-950/85 border-b border-stone-800/80 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between backdrop-blur-md shadow-lg shadow-black/40">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => setIsMobileNavOpen((prev) => !prev)}
+            aria-label="Abrir menú del panel"
+            className="sm:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-stone-800 bg-stone-900 text-stone-200 shadow-sm transition-colors"
+          >
+            <span className="flex flex-col gap-1.5">
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+            </span>
+          </button>
+
+          <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-800/50 flex items-center justify-center text-amber-500 shadow-inner shrink-0">
             <Flame className="w-5 h-5" style={{ animation: 'flameFlicker 2s ease-in-out infinite' }} />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h1 className="font-serif font-black uppercase text-base tracking-wider text-stone-100">
+
+          <div className="flex flex-col min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-serif font-black uppercase text-sm sm:text-base tracking-wider text-stone-100 truncate">
                 IL FORNO
               </h1>
               <span className="bg-amber-950/70 text-amber-400 text-[10px] font-mono px-2 py-0.5 rounded-full border border-amber-800/50 flex items-center gap-1 font-bold">
                 <ShieldCheck className="w-3 h-3" /> ADMIN
               </span>
             </div>
-            <span className="text-[10px] font-mono text-stone-400">
+            <span className="text-[10px] font-mono text-stone-400 truncate">
               Panel de Control Interno
             </span>
           </div>
@@ -254,15 +300,55 @@ export const DashboardPage = () => {
 
         <button
           onClick={logout}
-          className="flex items-center gap-2 bg-stone-900/90 hover:bg-stone-800 text-stone-300 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider transition-all border border-stone-800 cursor-pointer hover:scale-[1.02] active:scale-95 shadow-sm"
+          className="flex items-center gap-2 bg-stone-900/90 hover:bg-stone-800 text-stone-300 px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-mono uppercase tracking-wider transition-all border border-stone-800 cursor-pointer hover:scale-[1.02] active:scale-95 shadow-sm"
         >
           <LogOut className="w-4 h-4 text-stone-400" />
           <span className="hidden sm:inline font-semibold">Salir</span>
         </button>
       </header>
 
+      {isMobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          className="sm:hidden fixed inset-0 z-40 bg-black/45"
+          onClick={() => setIsMobileNavOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`sm:hidden fixed left-0 top-16 bottom-0 z-50 w-[79%] max-w-xs bg-stone-950/95 border-r border-stone-800/80 p-4 shadow-2xl shadow-black/60 transition-transform duration-200 ${
+          isMobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col gap-3 pt-2">
+          {TABS.map(({ id, label, icon: Icon }) => {
+            const count = id === 'menu' ? ` (${pizzaCount})` : '';
+            const isActive = activeTab === id;
+
+            return (
+              <button
+                key={id}
+                onClick={() => changeTab(id)}
+                className={`dashboard-tab tab-btn-in flex w-full items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left text-xs font-mono uppercase tracking-wider ${
+                  isActive
+                    ? 'border-stone-100 bg-stone-100 text-stone-950 font-bold'
+                    : 'border-stone-800 bg-stone-900/60 text-stone-300 hover:bg-stone-900'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-stone-950' : 'text-stone-400'}`} />
+                  {label}
+                </span>
+                {count && <span className="text-[10px] opacity-80">{pizzaCount}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
       <main className="relative z-10 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6 flex-1">
-        <div className="border-b border-stone-800/80 pb-3">
+        <div className="hidden sm:block border-b border-stone-800/80 pb-3">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1.5 py-1.5 -mx-1.5">
             {TABS.map(({ id, label, icon: Icon }, i) => {
               const count = id === 'menu' ? ` (${pizzaCount})` : '';
@@ -272,12 +358,12 @@ export const DashboardPage = () => {
                 <button
                   key={id}
                   onClick={() => changeTab(id)}
-                  className={`tab-btn-in flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-mono uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                  className={`dashboard-tab tab-btn-in flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-mono uppercase tracking-wider cursor-pointer shrink-0 ${
                     isActive
-                      ? 'bg-stone-100 text-stone-950 font-bold shadow-lg shadow-black/40 scale-105'
-                      : 'bg-stone-900/60 text-stone-400 hover:text-stone-200 border border-stone-800/60 hover:bg-stone-900 hover:scale-[1.02]'
+                      ? 'bg-stone-100 text-stone-950 font-bold shadow-lg shadow-black/40'
+                      : 'bg-stone-900/60 text-stone-400 hover:text-stone-200 border border-stone-800/60 hover:bg-stone-900'
                   }`}
-                  style={{ animationDelay: `${i * 60}ms` }}
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-stone-950' : 'text-stone-400'}`} />
                   <span>{label}{count}</span>

@@ -81,8 +81,19 @@ export const LandingProvider = ({ children }) => {
 
     window.addEventListener('landing:refresh', handleLandingRefresh);
 
+    // Escucha también el canal de broadcast, para refrescarse cuando el
+    // dashboard está abierto en OTRA pestaña/ventana del mismo navegador
+    // (window.dispatchEvent no cruza pestañas, BroadcastChannel sí).
+    const channel = new BroadcastChannel('landing');
+    channel.onmessage = (event) => {
+      if (event.data === 'refresh') {
+        hydrate();
+      }
+    };
+
     return () => {
       window.removeEventListener('landing:refresh', handleLandingRefresh);
+      channel.close();
     };
   }, []);
 

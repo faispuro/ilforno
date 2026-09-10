@@ -19,7 +19,8 @@ import { ActionToast } from '../ui/ActionToast';
 import { pizzaService } from '../../services/pizzasService';
 import { uploadImage } from '../../services/uploadService';
 
-const ITEMS_PER_PAGE = 4;
+const DEFAULT_ITEMS_PER_PAGE = 4;
+const MOBILE_ITEMS_PER_PAGE = 3;
 const DOUGH_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
 const STYLE = `
@@ -70,10 +71,16 @@ const resolveReorderedPizzaList = (items, currentId, targetOrderNumber) => {
   }));
 };
 
-// Avisa a LandingContext que vuelva a pedir los datos (así se refleja en la landing sin recargar)
+// Canal para avisar a otras pestañas/ventanas (misma origin) que el contenido cambió
+const landingChannel = typeof window !== 'undefined' ? new BroadcastChannel('landing') : null;
+
+// Avisa a LandingContext que vuelva a pedir los datos (así se refleja en la landing sin recargar).
+// Dispara tanto un CustomEvent (misma pestaña) como un mensaje de BroadcastChannel (otras pestañas
+// del mismo navegador/origen), ya que window.dispatchEvent no cruza pestañas.
 const notifyLandingRefresh = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('landing:refresh'));
+    landingChannel?.postMessage('refresh');
   }
 };
 
@@ -86,10 +93,14 @@ export const MenuEditorTab = () => {
   const [pizzaToEdit, setPizzaToEdit] = useState(null);
   const [pizzaToDelete, setPizzaToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_ITEMS_PER_PAGE;
+    return window.innerWidth < 768 ? MOBILE_ITEMS_PER_PAGE : DEFAULT_ITEMS_PER_PAGE;
+  });
 
   const { isSaving, toast, submitWithToast } = useFormSubmit();
 
-  const totalPages = Math.ceil(pizzas.length / ITEMS_PER_PAGE) || 1;
+  const totalPages = Math.ceil(pizzas.length / itemsPerPage) || 1;
 
   const loadPizzas = useCallback(async () => {
     setIsLoading(true);
@@ -110,13 +121,25 @@ export const MenuEditorTab = () => {
   }, [loadPizzas]);
 
   useEffect(() => {
+    const updateItemsPerPage = () => {
+      const nextItemsPerPage = window.innerWidth < 768 ? MOBILE_ITEMS_PER_PAGE : DEFAULT_ITEMS_PER_PAGE;
+      setItemsPerPage(nextItemsPerPage);
+      setCurrentPage((prevPage) => Math.min(prevPage, Math.max(1, Math.ceil(pizzas.length / nextItemsPerPage) || 1)));
+    };
+
+    updateItemsPerPage();
+    window.addEventListener('resize', updateItemsPerPage);
+    return () => window.removeEventListener('resize', updateItemsPerPage);
+  }, [pizzas.length]);
+
+  useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [pizzas.length, totalPages, currentPage]);
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentPizzas = pizzas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentPizzas = pizzas.slice(startIndex, startIndex + itemsPerPage);
 
   const handleOpenAdd = () => {
     setPizzaToEdit(null);
@@ -250,7 +273,7 @@ export const MenuEditorTab = () => {
     <>
       <ActionToast toast={toast} />
 
-      <div className="block-in relative bg-stone-900/40 border border-stone-800/90 p-6 sm:p-8 rounded-3xl backdrop-blur-sm overflow-hidden h-145 flex flex-col justify-between">
+      <div className="block-in relative bg-stone-900/40 border border-stone-800/90 p-4 sm:p-8 rounded-3xl backdrop-blur-sm overflow-hidden min-h-152 sm:min-h-168 flex flex-col justify-between">
         <style>{STYLE}</style>
 
         <div className="absolute top-0 right-1/4 w-72 h-32 bg-amber-600/10 blur-3xl pointer-events-none rounded-full" />
@@ -312,7 +335,7 @@ export const MenuEditorTab = () => {
         )}
 
         {!isLoading && !loadError && pizzas.length > 0 && (
-          <fieldset disabled={isSaving} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-5 my-auto h-90 content-start border-none p-0 m-0 disabled:opacity-60 disabled:pointer-events-none">
+          <fieldset disabled={isSaving} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-5 my-auto min-h-88 content-start border-none p-0 m-0 disabled:opacity-60 disabled:pointer-events-none">
             {currentPizzas.map((pizza) => (
               <div
                 key={pizza.id}
@@ -411,7 +434,7 @@ export const MenuEditorTab = () => {
             totalPages={totalPages}
             onPageChange={setCurrentPage}
             totalItems={pizzas.length}
-            itemsPerPage={ITEMS_PER_PAGE}
+            itemsPerPage={itemsPerPage}
           />
         )}
       </div>

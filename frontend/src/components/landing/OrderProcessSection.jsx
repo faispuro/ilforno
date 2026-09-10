@@ -41,10 +41,10 @@ const STEAM_STYLE = `
 
 export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
   const phone = whatsapp.replace(/\D/g, '') || '543415550199';
-  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Quería consultar por un pedido 🍕')}`;
+  const whatsappHref = `https://wa.me/${phone}?text=${encodeURIComponent('Hola! Quería consultar por un pedido.')}`;
 
   return (
-    <section className="relative bg-stone-950 text-stone-100 py-20 px-4 sm:px-6 lg:px-8 border-t border-stone-800/80 overflow-hidden">
+    <section className="relative bg-stone-950 text-stone-100 py-14 sm:py-20 px-4 sm:px-6 lg:px-8 border-t border-stone-800/80 overflow-hidden">
       <style>{STEAM_STYLE}</style>
 
       {/* Fondo de pizarrón sutil */}
@@ -65,22 +65,22 @@ export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
         ]}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-16">
+      <div className="relative z-10 max-w-7xl mx-auto space-y-10 sm:space-y-16">
 
         {/* Header con animación fade-up */}
         <ScrollSection direction="up">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-red-500">
+            <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-500">
               <Flame className="w-3.5 h-3.5" style={{ animation: 'flame-flicker 1.6s ease-in-out infinite' }} />
               CÓMO PEDÍS
             </span>
 
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-wider text-stone-100 font-serif leading-tight">
+            <h2 className="text-2xl sm:text-5xl font-black uppercase tracking-wider text-stone-100 font-serif leading-tight">
               ASÍ ARMAMOS <br className="hidden sm:block" />
               <span className="text-red-500">TU PEDIDO</span>
             </h2>
 
-            <p className="text-stone-400 text-sm sm:text-base font-medium max-w-xl mx-auto pt-1">
+            <p className="text-stone-400 text-xs sm:text-base font-medium max-w-xl mx-auto pt-1 leading-relaxed">
               No tenemos pizzas esperando bajo lámpara. Cada una se cocina para alguien, en el momento que coordinamos con vos.
             </p>
           </div>
@@ -93,7 +93,7 @@ export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
             <ScrollSection direction="left" delay={200}>
               <div className="hidden sm:block absolute left-4 top-2 bottom-2 w-px bg-stone-700" aria-hidden="true" />
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {steps.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -106,27 +106,27 @@ export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
                       </div>
 
                       <div
-                        className="relative bg-stone-100 text-stone-900 px-5 pt-5 pb-4 shadow-2xl rounded-sm"
+                        className="relative bg-stone-100 text-stone-900 px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 shadow-2xl rounded-sm"
                         style={{ transform: `rotate(${item.rotate})` }}
                       >
                         <div className="absolute -top-2.5 left-6 w-3 h-3 rounded-full bg-stone-950 border-2 border-stone-100" aria-hidden="true" />
 
                         <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-red-700 flex items-center justify-center shrink-0 mt-0.5">
-                            <Icon className="w-4 h-4 text-white" />
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-red-700 flex items-center justify-center shrink-0 mt-0.5">
+                            <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono text-[10px] font-bold text-stone-500 uppercase tracking-widest">
+                              <span className="font-mono text-[9px] sm:text-[10px] font-bold text-stone-500 uppercase tracking-widest">
                                 paso {item.step} · {item.tag}
                               </span>
                             </div>
-                            <h3 className="font-serif font-black uppercase text-base leading-tight mt-0.5">
+                            <h3 className="font-serif font-black uppercase text-sm sm:text-base leading-tight mt-0.5">
                               {item.title}
                             </h3>
                             <div className="border-t border-dashed border-stone-300 my-2" />
-                            <p className="font-mono text-[11px] text-stone-600 leading-relaxed">
+                            <p className="font-mono text-[10px] sm:text-[11px] text-stone-600 leading-relaxed">
                               {item.text}
                             </p>
                           </div>
@@ -200,9 +200,9 @@ export const OrderProcessSection = ({ whatsapp = '+54 9 341 555-0199' }) => {
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-black text-xs py-3 rounded-xl shadow-lg shadow-red-950/40 transition-all hover:scale-[1.02] cursor-pointer uppercase tracking-wider"
+                        className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-black text-[10px] sm:text-xs py-2.5 sm:py-3 rounded-xl shadow-lg shadow-red-950/40 transition-all hover:scale-[1.02] cursor-pointer uppercase tracking-wider"
                       >
-                        <MessageCircle className="w-4 h-4" />
+                        <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Empezar a coordinar
                       </a>
                     </div>

@@ -15,33 +15,28 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPage } from './pages/admin/LoginPage';
 import { DashboardPage } from './pages/admin/DashboardPage';
 
+const PublicLayout = ({ children }) => (
+  <div className="min-h-screen bg-stone-950 text-white flex flex-col justify-between antialiased selection:bg-red-600 selection:text-white">
+    <Navbar />
+    {children}
+    <Footer />
+  </div>
+);
+
 export function App() {
   return (
     <AuthProvider>
       <LandingProvider>
         <Routes>
-        {/* 1. RUTAS PÚBLICAS (Con Navbar y Footer) */}
-        <Route
-          path="/*"
-          element={
-            <div className="min-h-screen bg-stone-950 text-white flex flex-col justify-between antialiased selection:bg-red-600 selection:text-white">
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/como-pedir" element={<HowItWorksPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              <Footer />
-            </div>
-          }
-        />
+          <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+          <Route path="/como-pedir" element={<PublicLayout><HowItWorksPage /></PublicLayout>} />
+          <Route path="/admin/login" element={<LoginPage />} />
 
-        {/* 2. RUTAS DE ADMINISTRACIÓN (Pantalla completa sin Navbar/Footer del cliente) */}
-        <Route path="/admin/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin/dashboard" element={<DashboardPage />} />
+          </Route>
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/admin/dashboard" element={<DashboardPage />} />
-        </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LandingProvider>
     </AuthProvider>
