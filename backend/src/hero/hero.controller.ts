@@ -4,7 +4,7 @@ import { UpdateHeroDto } from './dto/update-hero.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('landing')
-export class LandingController {
+export class HeroController {
   constructor(private readonly landingService: HeroService) {}
 
   @Get('hero')

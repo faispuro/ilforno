@@ -1,10 +1,14 @@
+import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET no está definido. Agregalo al archivo .env del backend.');
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
@@ -17,11 +21,6 @@ async function bootstrap() {
   // Habilita la validación automática de DTOs
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // Sirve las imágenes subidas (hero, pizzas, etc.) como archivos estáticos
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
-
-  await app.listen(3000);
+  await app.listen(Number(process.env.PORT) || 3000);
 }
 bootstrap();

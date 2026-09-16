@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { TrackEventDto } from './dto/track-event.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('analytics')
 export class AnalyticsController {
@@ -13,6 +14,7 @@ export class AnalyticsController {
   }
 
   @Get('dashboard')
+  @UseGuards(JwtAuthGuard)
   async getDashboard() {
     return this.analyticsService.getDashboardMetrics();
   }
