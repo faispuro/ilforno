@@ -69,7 +69,7 @@ export const MenuSection = ({ products = [], onAddToCart }) => {
               NUESTRA CARTA
             </span>
             <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-wider text-stone-100 font-serif">
-              ESPECIALES <span className="text-red-500">A LA PIEDRA</span>
+              PIZZAS <span className="text-red-500">ESTILO NAPOLITANO</span>
             </h2>
           </div>
 

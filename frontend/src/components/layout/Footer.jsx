@@ -75,7 +75,7 @@ export const Footer = () => {
               Comanda
             </p>
             <p className="font-mono text-xs text-center text-stone-800 font-bold mt-1">
-              1x Pizza a la piedra
+              1x Pizza a la Napolitana
             </p>
             <div className="border-t border-dashed border-stone-400 my-3" />
 
