@@ -6,8 +6,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Iniciando la carga de datos iniciales (Seed)...');
 
-  const hashedPassword = await bcrypt.hash('diegoencasamonte', 10);
-  const adminEmails = ['admin@ilforno.com', 'admin@ilfondo.com'];
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!seedPassword) {
+    throw new Error(
+      'Falta SEED_ADMIN_PASSWORD en el .env. Definila antes de correr el seed (no uses la contraseña vieja que estaba en el código).',
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(seedPassword, 10);
+  const adminEmails = (process.env.SEED_ADMIN_EMAILS ?? 'admin@ilforno.com')
+    .split(',')
+    .map((email) => email.trim())
+    .filter(Boolean);
 
   const adminRecords = await Promise.all(
     adminEmails.map(async (email) => {
