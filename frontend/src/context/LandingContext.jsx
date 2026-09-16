@@ -42,7 +42,7 @@ export const LandingProvider = ({ children }) => {
         description: pizza.description || 'Pizza artesanal preparada a la piedra.',
         price: Number(pizza.price ?? 0),
         image: pizza.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591',
-        tag: pizza.tagBadge || 'RECOMENDADA',
+        tag: pizza.tagBadge || '',
         available: pizza.available ?? true,
         orderNumber: pizza.orderNumber ?? index + 1,
       }))

@@ -159,21 +159,19 @@ export const MenuSection = ({ products = [], onAddToCart }) => {
           {/* Columna Derecha: Información Centrada */}
           <div key={`info-col-${animKey}`} className="lg:col-span-6 space-y-6 text-center flex flex-col items-center justify-center order-1 lg:order-2">
 
-            <div
-              className="anim-dough flex items-center justify-center gap-3 h-7"
-              style={{ animationDelay: '80ms' }}
-            >
-              <span className="px-3 py-1 rounded-full bg-red-600 text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 fill-current" />
-                RECOMENDADA
-              </span>
-
-              {currentPizza.tag && (
-                <span className="text-xs font-black tracking-widest text-stone-500 uppercase">
-                  • {currentPizza.tag}
+            {currentPizza.tag && (
+              <div
+                className="anim-dough flex items-center justify-center gap-3 w-full max-w-md h-8"
+                style={{ animationDelay: '80ms' }}
+              >
+                <span className="h-px flex-1 bg-linear-to-r from-transparent via-red-700/70 to-red-700/70" aria-hidden="true" />
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-600 text-white border border-red-400/30 font-black text-[10px] uppercase tracking-[0.18em] shadow-lg shadow-red-950/40">
+                  <Flame className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  {currentPizza.tag}
                 </span>
-              )}
-            </div>
+                <span className="h-px flex-1 bg-linear-to-l from-transparent via-red-700/70 to-red-700/70" aria-hidden="true" />
+              </div>
+            )}
 
             <div className="space-y-3 max-w-lg w-full">
               <div className="min-h-18 sm:min-h-30 flex items-center justify-center">
